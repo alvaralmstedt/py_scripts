@@ -7,8 +7,8 @@ Usage: fasta_capitals.py fastafile.fasta [C/L] > result.fasta
 from sys import argv
 from string import maketrans
 
-argv[1] = filename
-argv[2] = action
+filename = argv[1]
+action = argv[2]
 
 def capitals(fil):
 
@@ -19,11 +19,12 @@ def capitals(fil):
     with open(fil) as inputfile:
         for line in inputfile:
             if line.startswith(">"):
-                print line
+                print line.rstrip()
             else:
-                print line.translate(transtab)
+                print line.translate(transtab).rstrip()
 
 def lowercase(fil):
+
     transfrom = "ABCDEFGHIJKLMNOPQRSTUVXYZ"
     transto = "abcdefghijklmnopqrstuvxyz"
     transtab = maketrans(transfrom, transto)
@@ -31,9 +32,9 @@ def lowercase(fil):
     with open(fil) as inputfile:
         for line in inputfile:
             if line.startswith(">"):
-                print line
+                print line.rstrip()
             else:
-                print line.translate(transtab)
+                print line.translate(transtab).rstrip()
 
 if str(action) == "c" or str(action) == "C":
     capitals(filename)
