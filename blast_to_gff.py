@@ -31,14 +31,21 @@ class Table(object):
             fieldnames = ["header", "blastresult", "hit", "start", "stop", "score", "orientation", "period", "ID"]
             read_results = self.read_result()
             gff_writer = csv.DictWriter(gff_out, delimiter='\t', fieldnames=fieldnames)
+            iterator = 1
             for i in read_results:
-                gff_writer.writerow({"header": str(i["header"]), "blastresult": "blast_result", "hit": "hit",
-                                     "start": str(i["start"]), "stop": str(i["stop"]), "score": "0",
+                gff_writer.writerow({"header": str(i["header"]),
+                                     "blastresult": "blast_result",
+                                     "hit": "hit",
+                                     "start": min(i["start"], i["stop"]),
+                                     "stop": max(i["start"], i["stop"]),
+                                     "score": ".",
                                      "orientation": self.orientation(i["start"], i["stop"]),
-                                     "period": ".", "ID": "ID=%s" % i["header"]})
+                                     "period": ".",
+                                     "ID": "ID=%s;Parent=%s" % (i["header"] + "_%s" % iterator, i["header"])})
+                iterator += 1
 
     def orientation(self, start, end):
-        if start < end:
+        if int(start) < int(end):
             return "+"
         return "-"
 
