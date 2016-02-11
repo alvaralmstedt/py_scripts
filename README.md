@@ -15,4 +15,4 @@ Converts a custom blast result or minimal bed file into a minimal gff file. Only
 
     Usage: blast_to_gff.py <infile> <outfile.gff>
 
-Note: Blast needs to be run with custom ouput for this script to work. The scripts only needs 3 fields in the input file: hit name, start, stop (tab-delimited).
+Note: Blast needs to be run with custom ouput for this script to work. The scripts only needs 3 fields in the input file: hit name, start, stop (tab-delimited). There is supprot for more fields, however. The information contained in additional fields will be diplayed in the comment field (field 9) of the GFF file.
