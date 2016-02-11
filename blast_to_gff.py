@@ -4,7 +4,7 @@ from sys import argv
 import csv
 
 """
-Converts minimal (3 field or 5 field) tab separated BED/blast result files into minimal (9 field)
+Converts minimal (3 field or more) tab separated BED/blast result files into minimal (9 field)
 tab separated GFF files.
 Usage: blast_to_gff.py <BED-infile> <GFF-outfile>
 By: Alvar Almstedt
@@ -16,14 +16,15 @@ class Table(object):
         self.input_file_name = input_file_name
         self.output_file_name = output_file_name
 
-# This method reads the input blast result
+# This method reads the input blast result. For best results, input the blast flags in the same order as in the
+# "fieldnames" list beneath.
     def read_result(self):
         with open(self.input_file_name, 'r') as in_file:
             global fields
-            fieldnames = ["header", "sstart", "sstop", "qstart", "qstop", "qheader"]
+            fieldnames = ["header", "sstart", "sstop", "qheader","qlen", "qstart", "qstop", "sframe", "bitscore"]
 
             blast_reader = csv.DictReader(in_file, delimiter='\t', fieldnames=fieldnames)
-            file_contents=[]
+            file_contents = []  # This will be the list where each value is dict created from one line of input
             for i in blast_reader:
                 file_contents.append(i)
             fields = len(file_contents[0])  # set fields variable to number of fields read from input
@@ -63,9 +64,9 @@ class Table(object):
         elif amount < 6:
             return "ID=%s;Parent=%s;QueryStart=%s;QueryStop=%s" % (i["header"] + "_%s" % iterator, i["header"],
                                                                    i["qstart"], i["qstop"])
-        elif amount < 10:
-            return "ID=%s;Parent=%s;QueryStart=%s;QueryStop=%s;QueryID=%s" % (i["header"] + "_%s" % iterator, i["header"],
-                                                                   i["qstart"], i["qstop"], i["qheader"])
+        return "ID=%s;Parent=%s;QueryID=%s;QueryLength=%s;QueryStart=%s;QueryStop=%s;SubjectFrame=%s;Bitscore=%s" % \
+                   (i["header"] + "_%s" % iterator, i["header"], i["qheader"], i["qlen"], i["qstart"], i["qstop"],
+                    i["sframe"], i["bitscore"])
 
 if __name__ == "__main__":
     infile = argv[1]
