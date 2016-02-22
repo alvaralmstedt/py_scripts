@@ -33,7 +33,8 @@ def write_gff(header_list, output_file_name):
                                      "score": ".",
                                      "orientation": str(orienter(header)),
                                      "period": ".",
-                                     "ID": "ID=%s;Parent=%s;" % (str(header) + "_" + str(types_iterator + 1), header)})
+                                     "ID": "ID=%s;Parent=%s;" %
+                                           (str(header) + "_" + str(types[types_iterator]), header)})
                 if types_iterator < 5:
                     types_iterator += 1
                 else:

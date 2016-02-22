@@ -3,10 +3,9 @@
 from sys import argv
 
 """
-
 Quick script to work around grep issue.
-
 """
+
 
 def get_forward(headers, sequences, output):
     with open(headers, "r") as head:
