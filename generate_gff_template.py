@@ -20,9 +20,9 @@ def write_gff(header_list, output_file_name):
     with open(output_file_name, 'w+') as gff_out:
         fieldnames = ["header", "source", "type", "start", "stop", "score", "orientation", "period", "ID"]
         gff_writer = csv.DictWriter(gff_out, delimiter='\t', fieldnames=fieldnames)
-        types = ["gene", "CDS", "exon", "intron", "5'-UTR", "3'-UTR"]
+        types = ["gene", "CDS", "intron"]      # "exon", "5'-UTR", "3'-UTR"] < these can be added
         types_iterator = 0
-        lines_per_type = 6      # number of lines per contig
+        lines_per_type = 3      # number of lines per contig. can be modified
         for header in header_list:
             for i in range(lines_per_type):
                 gff_writer.writerow({"header": str(header),
@@ -35,7 +35,7 @@ def write_gff(header_list, output_file_name):
                                      "period": ".",
                                      "ID": "ID=%s;Parent=%s;" %
                                            (str(header) + "_" + str(types[types_iterator]), header)})
-                if types_iterator < 5:
+                if types_iterator < 2:      # iterates over the 3 types. always give lines_per_type - 1
                     types_iterator += 1
                 else:
                     types_iterator = 0
