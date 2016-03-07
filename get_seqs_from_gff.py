@@ -9,7 +9,7 @@ stop fields. Important: make sure your fasta headers and gff headers (field 1) c
 
 Usage:
 
-get_seqs_from:gff.py <in_sequences.fasta> <in_coordinates.gff> <output_filename.fasta> <field_name>
+get_seqs_from_gff.py <in_sequences.fasta> <in_coordinates.gff> <output_filename.fasta> <field_name>
 
 where field name is the third column in the gff file (gene/CDS/exon/intron etc.)
 
