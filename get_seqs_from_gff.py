@@ -62,7 +62,7 @@ def write_fasta_outfile(fasta_in, gff_in, outfile):  # This function parses the 
             for gff_line in gff_in:
                 if set(gff_line["headername"].split()) & set(fasta_keys.split()):
                     if gff_line["type"] == type_to_cut:
-                        start = int(gff_line["start"])
+                        start = int(gff_line["start"]) - 1      # minus 1 fixes off by one error
                         stop = int(gff_line["stop"])
                         length = str(int(gff_line["stop"]) - int(gff_line["start"]))
                         if first != 0:
