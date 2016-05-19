@@ -8,11 +8,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-e', '--emails', nargs='+', help='Email list', required=True)
 parser.add_argument('-j', '--job_name', nargs='?', type=str, help="Job name")
 parser.add_argument('-u', '--users', nargs='+', help="User list")
+parser.add_argument('-i', '--input_thingie', nargs='?', type=str, help="Useless argument needed for clc")
 
 args = parser.parse_args()
 emails_input = args.emails
 users_input = args.users
 job_name_input = args.job_name
+useless_input = args.input_thingie
 
 
 def email_list_creator(emails, users, job):
@@ -40,6 +42,6 @@ def email_list_creator(emails, users, job):
 
 def email_sender(emails):
     for i in emails:
-        subprocess.call('echo %s | sendmail -i -t' % i)
+        subprocess.call('echo "%s" | /usr/sbin/sendmail -i -t' % i, shell=True)
 
 email_sender(email_list_creator(emails_input, users_input, job_name_input))
