@@ -40,6 +40,6 @@ def email_list_creator(emails, users, job):
 
 def email_sender(emails):
     for i in emails:
-        subprocess.call('echo %s | sendmail -i -t' % i)
+        subprocess.call('echo "%s" | /usr/sbin/sendmail -i -t' % i, shell=True)
 
 email_sender(email_list_creator(emails_input, users_input, job_name_input))
