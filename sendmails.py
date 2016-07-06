@@ -8,7 +8,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-e', '--emails', nargs='+', help='Email list', required=True)
 parser.add_argument('-j', '--job_name', nargs='?', type=str, help="Job name")
 parser.add_argument('-u', '--users', nargs='+', help="User list")
-parser.add_argument('-i', '--input_thingie', nargs='?', type=str, help="Useless argument needed for clc")
+parser.add_argument('-i', '--input_thingie', nargs='+', help="Useless argument needed for clc")
 
 args = parser.parse_args()
 emails_input = args.emails
