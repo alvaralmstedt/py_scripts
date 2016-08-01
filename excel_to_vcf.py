@@ -52,14 +52,20 @@ def read_excel(excel_file, sheet_name, chrom, variant, gene):
     genelist = make_lists(genes)
     regionlist = make_lists(regions)
     variantlist = make_lists(variants)
+    references = []
+    varts = []
+    for i in variant_format(variantlist):
+        references.append(i[0])
+        varts.append(i[1])
  #   print chromlist, genelist, regionlist
- #   print len(chromlist), len(genelist), len(regionlist)
+    print len(chromlist), len(genelist), len(regionlist), len(references), len(varts)
  #   print genelist[825]
  #   print np.column_stack((chromlist, genelist, regionlist))
  #   if not stop:
  #       stop = len(genelist)
  #       global stop
-    return np.column_stack((chromlist, variantlist, genelist, regionlist))
+    return np.column_stack((chromlist, references, varts, genelist, regionlist))
+
 
 def make_lists(columns):
     celllist = []
@@ -75,8 +81,22 @@ def make_lists(columns):
     return celllist
 
 
+def variant_format(variantlist):
+    variants = []
+    for i in variantlist:
+        if ">" in i:
+            gtsplit = i.split('>')
+            slashsplit = str(gtsplit[1]).split('/')
+#            print gtsplit
+#            print slashsplit
+            variants.append(slashsplit)
+        else:
+            variants.append(["None", "None"])
+    return variants
+
 def write_vcf(inlists, start, stop):
     print inlists[int(start):int(stop)+int(start) - 1]
+    pass
 
 if not start:
     start = int(0)
