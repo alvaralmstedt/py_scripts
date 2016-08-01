@@ -57,7 +57,6 @@ def read_excel(excel_file, sheet_name, chrom, variant, gene):
     for i in variant_format(variantlist):
         references.append(i[0])
         varts.append(i[1])
- #   print chromlist, genelist, regionlist
     print len(chromlist), len(genelist), len(regionlist), len(references), len(varts)
  #   print genelist[825]
  #   print np.column_stack((chromlist, genelist, regionlist))
