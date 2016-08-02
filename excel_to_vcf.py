@@ -1,6 +1,7 @@
 #!/Users/alvaralmstedt/anaconda2/bin/python
 # -*- coding: utf-8 -*-
 
+import time
 import openpyxl
 import argparse
 from openpyxl.cell import get_column_letter, column_index_from_string
@@ -28,15 +29,12 @@ region = args.region
 chrom = args.chromosome
 variant = args.variant
 sheet_name = args.sheet
-start = args.rowstart
-stop = args.rowstop
-
+start = str(int(args.rowstart) - 1)
+stop = str(int(args.rowstop) - 1)
 
 
 def read_excel(excel_file, sheet_name, chrom, variant, gene):
-#    print sheet_name
     wb = openpyxl.load_workbook(excel_file)
-#    print wb
     try:
         sheet = wb.get_sheet_by_name(str(sheet_name))
     except:
@@ -57,12 +55,6 @@ def read_excel(excel_file, sheet_name, chrom, variant, gene):
     for i in variant_format(variantlist):
         references.append(i[0])
         varts.append(i[1])
-    print len(chromlist), len(genelist), len(regionlist), len(references), len(varts)
- #   print genelist[825]
- #   print np.column_stack((chromlist, genelist, regionlist))
- #   if not stop:
- #       stop = len(genelist)
- #       global stop
     return np.column_stack((chromlist, references, varts, genelist, regionlist))
 
 
@@ -86,16 +78,28 @@ def variant_format(variantlist):
         if ">" in i:
             gtsplit = i.split('>')
             slashsplit = str(gtsplit[1]).split('/')
-#            print gtsplit
-#            print slashsplit
             variants.append(slashsplit)
         else:
             variants.append(["None", "None"])
     return variants
 
-def write_vcf(inlists, start, stop):
-    print inlists[int(start):int(stop)+int(start) - 1]
-    pass
+
+def write_vcf(inlists, start, stop, output):
+    inputs = inlists[int(start):int(stop)+int(start) - 1]
+    currenttime = time.strftime('%Y%m%d')
+    fileheader = """##fileformat=VCFv4.1
+##fileDate=%s
+##source=excel_to_vcf.py
+##reference=unknown
+##INFO=<ID=GI,Number=1,Type=String,Description="Gene Identifier">""" % currenttime
+    columnheader = "#CHROM" + "\t" + "POS" + "\t" + "ID" + "\t" + "REF" + "\t" + "ALT" + "\t" + "QUAL" + "\t" \
+                    + "FILTER" + "\t" + "INFO"
+    with open(output, "w+") as out:
+        out.write(fileheader)
+        out.write(columnheader)
+        for i in inputs:
+            out.write("\n" + i[0] + "\t" + i[4] + "\t" + "." + "\t" + i[1] + "\t" + i[2] + "\t" + "." + "\t" + "." + "\t" +
+                      "GI=" + i[3])
 
 if not start:
     start = int(0)
@@ -104,5 +108,4 @@ if not stop:
     listitem = read_excel(excel_file, sheet_name, chrom, gene)
     stop = len(listitem)
 
-#read_excel(excel_file, sheet_name, chrom, gene)
-write_vcf(read_excel(excel_file, sheet_name, chrom, variant, gene), start, stop)
+write_vcf(read_excel(excel_file, sheet_name, chrom, variant, gene), start, stop, output)
