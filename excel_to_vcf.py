@@ -8,17 +8,28 @@ from openpyxl.cell import get_column_letter, column_index_from_string
 import numpy as np
 np.set_printoptions(threshold=np.inf)
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(prog='excel_to_vcf.py', formatter_class=argparse.RawDescriptionHelpFormatter,
+                                 description="""
+This script will attempt to read data from a microsoft excel sheet
+and write out data from the selected cells into a minimal VCF file
+(v4.1 see http://samtools.github.io/hts-specs/VCFv4.1.pdf).
 
-parser.add_argument("excel_table", nargs="?", type=str, help='path to your excel table input file')
-parser.add_argument("output", nargs="?", type=str, help='specify output path, else cwd')
-parser.add_argument("-c", "--chromosome", nargs="?", action='store', type=str, help='which excel column the chromosome number is given')
-parser.add_argument("-r", "--region", nargs="?", action='store', type=str, help='which excel column the coordinate of the variant is given')
-parser.add_argument("-g", "--gene", nargs="?", action='store', type=str, help='which excel column contains the gene name')
-parser.add_argument("-v", "--variant", nargs="?", action='store', type=str, help='which excel column contains the variant')
-parser.add_argument("-s", "--sheet", nargs="?", action='store', type=str, help='sheet name to be used in the excel file')
-parser.add_argument("-w", "--rowstart", nargs="?", action='store', type=str, help='from which row number in the excel file that parsing should start')
-parser.add_argument("-t", "--rowstop", nargs="?", action='store', type=str, help='to which row number in the excel file the parsing should run')
+Some limitations to take into consideration:
+
+1. The variant cells must be formatted as: [REF]>[REF]/[ALT] for correct output.\n
+2. Currently there is only support for gene name in the INFO column.
+
+Author: Alvar Almstedt""")
+
+parser.add_argument("excel_table", nargs="?", type=str, help=':Full path to your excel table input file')
+parser.add_argument("output", nargs="?", type=str, help=':Specify full output path and filename of the vcf file you want to create')
+parser.add_argument("-c", "--chromosome", nargs="?", action='store', type=str, help=':Specify hich excel column the chromosome number is given')
+parser.add_argument("-r", "--region", nargs="?", action='store', type=str, help=':Specify which excel column the coordinate of the variant is given')
+parser.add_argument("-g", "--gene", nargs="?", action='store', type=str, help=':Specify which excel column contains the gene name')
+parser.add_argument("-v", "--variant", nargs="?", action='store', type=str, help=':Specify which excel column contains the variants (format example: T>T/A)')
+parser.add_argument("-s", "--sheet", nargs="?", action='store', type=str, help=':Specify sheet name to be used in the excel file')
+parser.add_argument("-w", "--rowstart", nargs="?", action='store', type=str, help=':Specify from which row number in the excel file the parsing should start (Default: 1)')
+parser.add_argument("-t", "--rowstop", nargs="?", action='store', type=str, help=':Specify to which row number in the excel file the parsing should run (Default: Bottom filled cell)')
 
 args = parser.parse_args()
 
@@ -90,8 +101,8 @@ def write_vcf(inlists, start, stop, output):
     fileheader = """##fileformat=VCFv4.1
 ##fileDate=%s
 ##source=excel_to_vcf.py
-##reference=unknown
-##INFO=<ID=GI,Number=1,Type=String,Description="Gene Identifier">""" % currenttime
+##reference=hg19
+##INFO=<ID=GI,Number=1,Type=String,Description="Gene Identifier">\n""" % currenttime
     columnheader = "#CHROM" + "\t" + "POS" + "\t" + "ID" + "\t" + "REF" + "\t" + "ALT" + "\t" + "QUAL" + "\t" \
                     + "FILTER" + "\t" + "INFO"
     with open(output, "w+") as out:
