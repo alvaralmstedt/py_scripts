@@ -4,7 +4,8 @@
 import time
 import openpyxl
 import argparse
-from openpyxl.cell import get_column_letter, column_index_from_string
+from openpyxl.utils import get_column_letter, column_index_from_string
+#from openpyxl.cell import get_column_letter, column_index_from_string
 import numpy as np
 np.set_printoptions(threshold=np.inf)
 
@@ -16,10 +17,12 @@ and write out data from the selected cells into a minimal VCF file
 
 Some limitations to take into consideration:
 
-1. The variant cells must be formatted as: [REF]>[REF]/[ALT] for correct output.\n
+1. The variant cells must be formatted as: [REF]>[REF]/[ALT] for correct output.
+More will be added as needed/requested.\n
 2. Currently there is only support for gene name in the INFO column.
 
-Author: Alvar Almstedt""")
+Author: Alvar Almstedt
+alvar.almstedt@gu.se""")
 
 parser.add_argument("excel_table", nargs="?", type=str, help=':Full path to your excel table input file')
 parser.add_argument("output", nargs="?", type=str, help=':Specify full output path and filename of the vcf file you want to create')
@@ -41,7 +44,7 @@ chrom = args.chromosome
 variant = args.variant
 sheet_name = args.sheet
 start = str(int(args.rowstart) - 1)
-stop = str(int(args.rowstop) - 1)
+stop = str(int(args.rowstop))
 
 
 def read_excel(excel_file, sheet_name, chrom, variant, gene):
@@ -51,11 +54,12 @@ def read_excel(excel_file, sheet_name, chrom, variant, gene):
     except:
         sheets = wb.get_sheet_names()
         sheet = sheets[0]
+    print "sheet is: ", sheet
 
-    chromosomes = sheet.columns[column_index_from_string(chrom) - 1]
-    genes = sheet.columns[column_index_from_string(gene) - 1]
-    regions = sheet.columns[column_index_from_string(region) - 1]
-    variants = sheet.columns[column_index_from_string(variant) - 1]
+    chromosomes = list(sheet.columns)[column_index_from_string(chrom) - 1]
+    genes = list(sheet.columns)[column_index_from_string(gene) - 1]
+    regions = list(sheet.columns)[column_index_from_string(region) - 1]
+    variants = list(sheet.columns)[column_index_from_string(variant) - 1]
 
     chromlist = make_lists(chromosomes)
     genelist = make_lists(genes)
@@ -96,7 +100,8 @@ def variant_format(variantlist):
 
 
 def write_vcf(inlists, start, stop, output):
-    inputs = inlists[int(start):int(stop)+int(start) - 1]
+    inputs = inlists[int(start):int(stop)]
+    print "Parsing cells from and including line %i to line %i (%i lines in total)" % (int(start) + 1, int(stop), int(stop)-int(start))
     currenttime = time.strftime('%Y%m%d')
     fileheader = """##fileformat=VCFv4.1
 ##fileDate=%s

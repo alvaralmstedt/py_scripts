@@ -32,11 +32,12 @@ def bed_table_changer(table_in, table_out):
             if iterator >= 1:
                 table_writer.writerow({"chromosome": str(i["chromosome"]),
                                        "start": str(int(i["start"])),
-                                       "stop": str(int(i["stop"]))})
+                                       "stop": str(int(i["stop"])),
+                                       "gene": str(i["gene"])})
+
             iterator += 1
 
 input_file = argv[1]
 output_file = argv[2]
-
 
 bed_table_changer(bed_table_reader(input_file), output_file)
