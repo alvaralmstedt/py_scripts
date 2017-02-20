@@ -3,7 +3,8 @@
 
 import argparse
 import csv
-import vcf
+import re
+#import vcf
 
 parser = argparse.ArgumentParser()
 
@@ -20,6 +21,7 @@ program = args.program
 
 def read_vcf(input, runtype):
 #    vcf_reader = vcf.Reader(open('filepath', 'r'))
+    print runtype
     with open(input, "r") as vcf:
         headerlines = []
         datalines = []
@@ -42,26 +44,40 @@ def read_vcf(input, runtype):
 
 def transformer_manta_incomplete(indata, outdata):
     with open(outdata, "w+") as out:
+        for i in read_vcf(input, False):
+            out.write(i)
         fieldnames = ["chr", "pos", "source", "ref", "alt", "qual", "filter", "info"]
         writer = csv.DictWriter(out, delimiter='\t', fieldnames=fieldnames)
-        for i in read_vcf(output, False):
-            out.write(i)
         for i in indata:
-            if "<DEL>" in i:
+ #           print(i)
+
+            if i["alt"] == "<DEL>":
+                del_len = re.search(r'.*;SVLEN=-(?s)(.[0-9]+).*', str(i["info"]))
+                print(del_len.group(1))
                 writer.writerow({"chr": str(i["chr"]),
                                  "pos": str(i["pos"]),
-                                 "source": str(["source"]),
-                                 "ref": str(["ref"]),
-                                 "alt": str(["alt"]),
-                                 "qual": str(["qual"]),
-                                 "filter": str(["filter"]),
-                                 "info": str(["info"])})
+                                 "source": str(i["source"]),
+                                 "ref": str("N"*int(del_len.group(1))),
+                                 "alt": str("-"),
+                                 "qual": str(i["qual"]),
+                                 "filter": str(i["filter"]),
+                                 "info": str(i["info"])})
 
-            elif "<INS>" in i:
-                pass
+            elif i["alt"] == "<INS>":
+                ins_seq1 = re.search(r'.*LEFT_SVINSSEQ=(?s)(.*);RIGHT_SVINSSEQ=.*', str(i["info"]))
+                ins_seq2 = re.search(r'.*;RIGHT_SVINSSEQ=(?s)(.*).*', str(i["info"]))
+                writer.writerow({"chr": str(i["chr"]),
+                                 "pos": str(i["pos"]),
+                                 "source": str(i["source"]),
+                                 "ref": str(i["ref"]),
+                                 "alt": str(ins_seq1.group(1) + "N"*10 + ins_seq2.group(1)),
+                                 "qual": str(i["qual"]),
+                                 "filter": str(i["filter"]),
+                                 "info": str(i["info"])})
             else:
                 continue
-            return
+                print("continuing")
+  #          return
 
 def transformer_manta_dipsomtum(input, output):
     pass
@@ -77,9 +93,18 @@ def write_clccompliant():
 
 def main_run_decider(indata, outdata):
     file_contents = read_vcf(indata, True)
-    if "Manta" in file_contents:
-        if "<DEL>" or "<INS>" in file_contents:
-            transformer_manta_incomplete(indata, outdata)
+#    print(file_contents)
+    source=[]
+    alt=[]
+    for i in file_contents:
+        source.append(i['source'])
+        alt.append(i['alt'])
+#    print source
+    if any("Manta" in s for s in source):
+        print("hej")
+        if any("<DEL>" or "<INS>" in s for s in alt):
+            print("svej")
+            transformer_manta_incomplete(file_contents, outdata)
         else:
             transformer_manta_dipsomtum(indata, outdata)
     elif "Canvas" in file_contents:
