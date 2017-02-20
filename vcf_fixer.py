@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import argparse
@@ -31,7 +31,7 @@ def read_vcf(input, runtype):
             else:
                 datalines.append(line)
 
-        fieldnames = ["chr", "pos", "source", "ref", "alt", "qual", "filter", "info"]
+        fieldnames = ["chr", "pos", "source", "ref", "alt", "qual", "filter", "info", "format", "sample"]
         filecontents = csv.DictReader(datalines, delimiter='\t', fieldnames=fieldnames)
         vcf_contents = []
         if not runtype:
@@ -46,7 +46,7 @@ def transformer_manta_incomplete(indata, outdata):
     with open(outdata, "w+") as out:
         for i in read_vcf(input, False):
             out.write(i)
-        fieldnames = ["chr", "pos", "source", "ref", "alt", "qual", "filter", "info"]
+        fieldnames = ["chr", "pos", "source", "ref", "alt", "qual", "filter", "info", "format", "sample"]
         writer = csv.DictWriter(out, delimiter='\t', fieldnames=fieldnames)
         for i in indata:
  #           print(i)
@@ -58,11 +58,12 @@ def transformer_manta_incomplete(indata, outdata):
                                  "pos": str(i["pos"]),
                                  "source": str(i["source"]),
                                  "ref": str("N"*int(del_len.group(1))),
-                                 "alt": str("-"),
+                                 "alt": str(i["ref"]),
                                  "qual": str(i["qual"]),
                                  "filter": str(i["filter"]),
-                                 "info": str(i["info"])})
-
+                                 "info": str(i["info"]),
+                                 "format": str(i["format"]),
+                                 "sample": str(i["sample"])})
             elif i["alt"] == "<INS>":
                 ins_seq1 = re.search(r'.*LEFT_SVINSSEQ=(?s)(.*);RIGHT_SVINSSEQ=.*', str(i["info"]))
                 ins_seq2 = re.search(r'.*;RIGHT_SVINSSEQ=(?s)(.*).*', str(i["info"]))
@@ -73,7 +74,9 @@ def transformer_manta_incomplete(indata, outdata):
                                  "alt": str(ins_seq1.group(1) + "N"*10 + ins_seq2.group(1)),
                                  "qual": str(i["qual"]),
                                  "filter": str(i["filter"]),
-                                 "info": str(i["info"])})
+                                 "info": str(i["info"]),
+                                 "format": str(i["format"]),
+                                 "sample": str(i["sample"])})
             else:
                 continue
                 print("continuing")
