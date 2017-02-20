@@ -22,7 +22,7 @@ program = args.program
 def read_vcf(input, runtype):
 #    vcf_reader = vcf.Reader(open('filepath', 'r'))
     print runtype
-    with open(input, "r") as vcf:
+    with open(input, "rb") as vcf:
         headerlines = []
         datalines = []
         for line in vcf:
@@ -43,11 +43,11 @@ def read_vcf(input, runtype):
 
 
 def transformer_manta_incomplete(indata, outdata):
-    with open(outdata, "w+") as out:
+    with open(outdata, "ab") as out:
         for i in read_vcf(input, False):
             out.write(i)
         fieldnames = ["chr", "pos", "source", "ref", "alt", "qual", "filter", "info", "format", "sample"]
-        writer = csv.DictWriter(out, delimiter='\t', fieldnames=fieldnames)
+        writer = csv.DictWriter(out, delimiter='\t', fieldnames=fieldnames, lineterminator='\n')
         for i in indata:
  #           print(i)
 
