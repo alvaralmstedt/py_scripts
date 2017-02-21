@@ -70,7 +70,7 @@ def transformer_manta_incomplete(indata, outdata):
                 writer.writerow({"chr": str(i["chr"]),
                                  "pos": str(i["pos"]),
                                  "source": str(i["source"]),
-                                 "ref": str(i["ref"]),
+                                 "ref": str("-"),
                                  "alt": str(ins_seq1.group(1) + "N"*10 + ins_seq2.group(1)),
                                  "qual": str(i["qual"]),
                                  "filter": str(i["filter"]),
