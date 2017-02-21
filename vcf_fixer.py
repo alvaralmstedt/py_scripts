@@ -57,7 +57,7 @@ def transformer_manta_incomplete(indata, outdata):
                 writer.writerow({"chr": str(i["chr"]),
                                  "pos": str(i["pos"]),
                                  "source": str(i["source"]),
-                                 "ref": str("N"*int(del_len.group(1))),
+                                 "ref": str(i["ref"]) + str("N" * (int(del_len.group(1)) - int(1))),
                                  "alt": str(i["ref"]),
                                  "qual": str(i["qual"]),
                                  "filter": str(i["filter"]),
