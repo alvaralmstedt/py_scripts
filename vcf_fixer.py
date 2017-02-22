@@ -53,7 +53,7 @@ def transformer_manta_incomplete(indata, outdata):
 
             if i["alt"] == "<DEL>":
                 del_len = re.search(r'.*;SVLEN=-(?s)(.[0-9]+).*', str(i["info"]))
-                print(del_len.group(1))
+ #               print(del_len.group(1))
                 writer.writerow({"chr": str(i["chr"]),
                                  "pos": str(i["pos"]),
                                  "source": str(i["source"]),
@@ -82,8 +82,24 @@ def transformer_manta_incomplete(indata, outdata):
                 print("continuing")
   #          return
 
-def transformer_manta_dipsomtum(input, output):
-    pass
+def transformer_manta_dipsomtum(indata, outdata):
+    with open(outdata, "ab") as out:
+        fieldnames = ["chr", "pos", "source", "ref", "alt", "qual", "filter", "info", "format", "sample"]
+        writer = csv.DictWriter(out, delimiter='\t', fieldnames=fieldnames, lineterminator='\n')
+        for i in indata:
+ #           print("pinne")
+            if not "<INS>" in str(i["alt"]) and not "<DEL>" in str(i["alt"]):
+                print "inne"
+                writer.writerow({"chr": str(i["chr"]),
+                                 "pos": str(i["pos"]),
+                                 "source": str(i["source"]),
+                                 "ref": str(i["ref"]),
+                                 "alt": str(i["alt"]),
+                                 "qual": str(i["qual"]),
+                                 "filter": str(i["filter"]),
+                                 "info": str(i["info"]),
+                                 "format": str(i["format"]),
+                                 "sample": str(i["sample"])})
 
 
 def transformer_canvas(input, output):
@@ -108,9 +124,8 @@ def main_run_decider(indata, outdata):
         if any("<DEL>" or "<INS>" in s for s in alt):
             print("svej")
             transformer_manta_incomplete(file_contents, outdata)
-        else:
-            transformer_manta_dipsomtum(indata, outdata)
-    elif "Canvas" in file_contents:
+            transformer_manta_dipsomtum(file_contents, outdata)
+    elif any("Canvas" in s for s in source):
         transformer_canvas(indata, outdata)
 
 
