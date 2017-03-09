@@ -89,7 +89,7 @@ def transformer_manta_dipsomtum(indata, outdata):
         for i in indata:
  #           print("pinne")
             if not "<INS>" in str(i["alt"]) and not "<DEL>" in str(i["alt"]):
-                print "inne"
+ #               print "inne"
                 writer.writerow({"chr": str(i["chr"]),
                                  "pos": str(i["pos"]),
                                  "source": str(i["source"]),
@@ -102,8 +102,26 @@ def transformer_manta_dipsomtum(indata, outdata):
                                  "sample": str(i["sample"])})
 
 
-def transformer_canvas(input, output):
-    pass
+def transformer_canvas(indata, outdata):
+    with open(outdata, "ab") as out:
+        fieldnames = ["chr", "pos", "source", "ref", "alt", "qual", "filter", "info", "format", "sample"]
+        writer = csv.DictWriter(out, delimiter='\t', fieldnames=fieldnames, lineterminator='\n')
+        for i in indata:
+            print str(i["alt"])
+            if i["alt"] == "<CNV>":
+                cnv_len = re.search(r'.*CNVLEN=(?s)(.*).*', str(i["info"]))
+                writer.writerow({"chr": str(i["chr"]),
+                                 "pos": str(i["pos"]),
+                                 "source": str(i["source"]),
+                                 "ref": str(i["ref"]),
+                                 "alt": str(i["ref"]) + str("N" * (int(cnv_len.group(1)) - int(1))),
+                                 "qual": str(i["qual"]),
+                                 "filter": str(i["filter"]),
+                                 "info": str(i["info"]),
+                                 "format": str(i["format"]),
+                                 "sample": str(i["sample"])})
+
+
 
 
 def write_clccompliant():
@@ -116,9 +134,10 @@ def main_run_decider(indata, outdata):
     source=[]
     alt=[]
     for i in file_contents:
+ #       print i
         source.append(i['source'])
         alt.append(i['alt'])
-#    print source
+ #   print source
     if any("Manta" in s for s in source):
         print("hej")
         if any("<DEL>" or "<INS>" in s for s in alt):
@@ -126,7 +145,8 @@ def main_run_decider(indata, outdata):
             transformer_manta_incomplete(file_contents, outdata)
             transformer_manta_dipsomtum(file_contents, outdata)
     elif any("Canvas" in s for s in source):
-        transformer_canvas(indata, outdata)
+        if any("<CNV>" in s for s in alt):
+            transformer_canvas(file_contents, outdata)
 
 
 main_run_decider(input, output)
