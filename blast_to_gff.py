@@ -21,7 +21,7 @@ class Table(object):
     def read_result(self):
         with open(self.input_file_name, 'r') as in_file:
             global fields
-            fieldnames = ["header", "sstart", "sstop", "qheader","qlen", "qstart", "qstop", "sframe", "bitscore"]
+            fieldnames = ["header", "sstart", "sstop", "qheader", "qlen", "qstart", "qstop", "sframe", "bitscore"]
 
             blast_reader = csv.DictReader(in_file, delimiter='\t', fieldnames=fieldnames)
             file_contents = []  # This will be the list where each value is dict created from one line of input
