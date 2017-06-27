@@ -90,7 +90,7 @@ def chunks(filename, chnksize, r_dir):
 
 def merger(in_path, resultname1, resultname2, chnkname1, chnkname2):
     with open(in_path + resultname1, "w") as evens:
-        e = set(glob.glob("{}*_{}".format(in_path, chnkname1)))
+        e = set(glob.glob("{}*{}".format(in_path, chnkname1)))
         for fname in sorted_nicely(e):
             with open(fname) as infile:
                 for line in infile:
