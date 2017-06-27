@@ -22,11 +22,14 @@ def sam_parse_worker(chunk):
                                 perfect.write(line)
                         except TypeError:
                             continue
-                        except ValueError:
+                        except ValueError as ve:
                             if bin(int(old_line[1]))[-2] == "b":
                                 perfect.write(line)
+                            else:
+                                print(ve)
                             continue
     os.remove(chunk)
+
 
 def chunks(filename, chnksize, r_dir):
     chunksize = chnksize
