@@ -78,8 +78,8 @@ def transformer_manta_incomplete(indata, outdata):
                                  "format": str(i["format"]),
                                  "sample": str(i["sample"])})
             else:
-                continue
                 print("continuing")
+                continue
   #          return
 
 def transformer_manta_dipsomtum(indata, outdata):
@@ -148,5 +148,6 @@ def main_run_decider(indata, outdata):
         if any("<CNV>" in s for s in alt):
             transformer_canvas(file_contents, outdata)
 
+if __name__ == "__main__":
+    main_run_decider(input, output)
 
-main_run_decider(input, output)
