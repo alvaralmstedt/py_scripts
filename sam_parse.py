@@ -14,7 +14,13 @@ def sam_parse_worker(chunk):
                 for line in sam:
                     old_line = line.split("\t")
                     if not line.startswith("@"):
-                        NH_field = old_line[-2].split(":")[-1]
+                        if old_line[-2].startswith("NH"):
+                            NH_field = old_line[-2].split(":")[-1]
+                        elif old_line[-1].startswith("NH"):
+                            NH_field = old_line[-1].split(":")[-1]
+                        else:
+                            print("Something is wrong the the input sam file. Printing line: \n" + str(line))
+                            exit(1)
                         try:
                             if int(old_line[4]) <= 3 and int(NH_field) > 1 or bin(int(old_line[1]))[-2] == '0':
                                 secondary.write(line)
