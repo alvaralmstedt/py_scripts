@@ -84,6 +84,8 @@ def sorted_nicely(l):
 
 
 def sam_split_runner(sam_in, rundir, chunksize, threads):
+    chunksize = int(chunksize)
+    threads = int(threads)
     sam = chunks(sam_in, chunksize, rundir)
     pool = multiprocessing.Pool(processes=int(threads))
     pool.map(sam_parse_worker, sam)
