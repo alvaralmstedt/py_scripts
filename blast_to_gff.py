@@ -10,6 +10,7 @@ Usage: blast_to_gff.py <BED-infile> <GFF-outfile>
 By: Alvar Almstedt
 """
 
+
 class Table(object):
 
     def __init__(self, input_file_name, output_file_name):

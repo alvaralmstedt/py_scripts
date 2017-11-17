@@ -99,6 +99,6 @@ if __name__ == "__main__":
     working_dir = str(argv[2])
     chunk_size = 100000
     chunk_size = int(argv[3])
-    numb_threads = 4
+    num_threads = 4
     num_threads = int(argv[4])
     sam_split_runner(input_file, working_dir, chunk_size, num_threads)
