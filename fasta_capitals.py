@@ -10,6 +10,7 @@ from string import maketrans
 filename = argv[1]
 action = argv[2]
 
+
 def capitals(fil):
 
     transfrom = "abcdefghijklmnopqrstuvxyz"
@@ -19,9 +20,9 @@ def capitals(fil):
     with open(fil) as inputfile:
         for line in inputfile:
             if line.startswith(">"):
-                print line.rstrip()
+                print(line.rstrip())
             else:
-                print line.translate(transtab).rstrip()
+                print(line.translate(transtab).rstrip())
 
 def lowercase(fil):
 
@@ -32,13 +33,14 @@ def lowercase(fil):
     with open(fil) as inputfile:
         for line in inputfile:
             if line.startswith(">"):
-                print line.rstrip()
+                print(line.rstrip())
             else:
-                print line.translate(transtab).rstrip()
+                print(line.translate(transtab).rstrip())
+
 
 if str(action) == "c" or str(action) == "C":
     capitals(filename)
 elif str(action) == "l" or str(action) == "L":
     lowercase(filename)
 else:
-    print "Please input 'C' or 'L' as argument 2 in order to make all nt/aa into capitals or lowercase, respectively "
+    print("Please input 'C' or 'L' as argument 2 in order to make all nt/aa into capitals or lowercase, respectively ")
