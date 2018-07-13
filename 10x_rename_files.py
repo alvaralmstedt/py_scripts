@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
+# How to run:
+# 10x_rename_files.py <folder containing fastqs>
+# Check output to see that the files have been renamed correctly.
+
 import os
 from sys import argv
 import re
 import glob
-from pprint import pprint
 
 path = argv[1]
 
@@ -22,6 +25,11 @@ for filename in sorted(glob.glob(os.path.join(path, "*.fastq.gz"))):
     for i in reversed(sn):
         if len(i) == 1 and i == "1" or i == "2":
             fwrev = i
+            print("STHLM-style names detected \n fwrev = %s" % fwrev)
+            break
+        elif len(i) == 2 and i[0] == "R":
+            fwrev = i[1]
+            print("CLC-style names detected \n fwrev = %s" % fwrev)
             break
     if not fwrev:
         raise Exception
@@ -35,7 +43,6 @@ for filename in sorted(glob.glob(os.path.join(path, "*.fastq.gz"))):
     while new_name in file_list:
         if len(lane_static + str(lane)) > 4:
             lane_static = lane_static.replace(lane_static[1], "", 1)
-
         new_name = samplename + "_" + "S1" + "_" + lane_static + str(lane) + "_" + "R" + fwrev + "_" + "001.fastq.gz"
         lane += 1
 
