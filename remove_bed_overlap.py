@@ -23,7 +23,7 @@ def treat_data(input_csv):
                 print("if1: changing {} to {}".format(row["start"], other_row["stop"]))
                 row["start"] = str(int(other_row["stop"]))
             if (row["chr"] == other_row["chr"]) and (int(row["start"]) < int(other_row["start"]) < int(row["stop"])):
-                print("if2: changing {} to {}".format(row["stop"], other_row["stop"]))
+                print("if2: changing {} to {}".format(row["stop"], other_row["start"]))
                 row["stop"] = str(int(other_row["start"]))
     return data
 
@@ -31,7 +31,7 @@ def treat_data(input_csv):
 def write_data_to_file(treated_data, table_out):
     with open(table_out, "a+") as outfile:
         fieldnames = ["chr", "start", "stop", "some_number", "a_dot", "gene_id"]
-        writer = csv.DictWriter(outfile, delimiter='\t', fieldnames=fieldnames)
+        writer = csv.DictWriter(outfile, delimiter='\t', fieldnames=fieldnames, lineterminator='\n')
         for i in treated_data[1:]:
             writer.writerow(i)
 
