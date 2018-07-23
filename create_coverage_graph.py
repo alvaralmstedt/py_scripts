@@ -34,7 +34,7 @@ def get_gene_names(all_data):
 
 def create_scatter_plot(gene, csv_input):
     data_for_plot = get_gene_data(get_all_data(csv_input), gene)
-    
+    data_for_plot.plot() 
 
 if __name__ == "__main__":
     csv_input = argv[1]
