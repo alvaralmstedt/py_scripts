@@ -5,10 +5,12 @@ import matplotlib
 matplotlib.use("tkagg")
 import matplotlib.pyplot as plt
 import numpy as np
+from sys import exit
 from sys import argv
 from pandas.plotting import scatter_matrix
 from mpldatacursor import datacursor
 import argparse
+from os import getcwd
 
 # The function tkes the csv files and returns a pandas dataframe with all the data
 def get_all_data(csv_file, mappings):
@@ -21,7 +23,7 @@ def get_all_data(csv_file, mappings):
 # This function takes a the full pandas dataframe and returns only the data from one gene
 def get_gene_data(all_data, gene):
     all_data = get_all_data(all_data, mappings)
-    gene_data = all_data.loc[all_data['Name'].str.contains(str(gene))]
+    gene_data = all_data.loc[all_data['Name'].str.contains(str(gene + "_"))]
     return gene_data
 
 
@@ -67,12 +69,12 @@ def get_good_targets(data):
         #SET EXON IF EMPTY
         lines_for_gene[current_gene] = 1
         #NEW EXON, SAME GENE
-        if current_gene in current_exon and row["Name"] != current_exon:
+        if current_gene + "_" in current_exon and row["Name"] != current_exon:
             current_exon = row["Name"]
             current_count += 1
             data.at[idx, "Target region position"] = str(current_count)
         #COMPLETELY NEW GENE
-        elif current_gene not in current_exon and row["Name"] != current_exon:
+        elif current_gene + "_" not in current_exon and row["Name"] != current_exon:
             current_exon = row['Name']
             current_count = 1
             data.at[idx, "Target region position"] = str(current_count)
@@ -88,40 +90,27 @@ def get_good_targets(data):
 
 
 # This fuction will create a matplotlib scatterplot with coverage numbers from one of the genes
-def create_scatter_plot(gene, csv_input):
+def create_scatter_plot(gene, csv_input, output):
     data_for_plot = get_gene_data(csv_input, gene)
     #print(data_for_plot)
     modded_data = get_good_targets(data_for_plot) 
     data_for_plot = modded_data
     transcripts = get_exons_in_gene(csv_input, gene)
-    #print(transcripts)
     dfp_evens = pd.DataFrame()
     dfp_odds = pd.DataFrame()
     for tr in transcripts["exon_name"]:
         exon = str(tr)
-        #print(exon)
         exon_number = int(exon.split("_")[-1])
-        #print("exon_num: ", exon_number)
         even_exon = exon_number % 2 == 0
         if even_exon:
             even_exon = data_for_plot.loc[data_for_plot["Name"].str.contains(str(exon))]
-            #print("inside even")
             #print(even_exon)
             dfp_evens = dfp_evens.append(even_exon)
-            #dfp_evens[exon] = data_for_plot.loc["Name"].str.contains(exon)
         else:
             odd_exon = data_for_plot.loc[data_for_plot["Name"].str.contains(str(exon))]
             dfp_odds = dfp_odds.append(odd_exon)
 
-    print(dfp_evens)
-    #dfp1_plot = dfp_evens.plot(x="Reference position", y="Coverage", kind='scatter', color='black', label="even_numbered_exons")
-    #dfp1_plot = dfp_evens.plot(x="Target region position",  y="Coverage", kind='scatter', color='black', s=5, marker='s')
-    #datacursor(hover=True, point_labels=dfp_evens["Name"])
-    #dfp_odds.plot(x="Reference position", y="Coverage", kind='scatter', color='b', label="odd_numbered_exons", ax=dfp1_plot)
-    #dfp_odds.plot(x="Reference position", y="Coverage", kind='scatter', color='b', label="odd_numbered_exons", ax=dfp1_plot)
-    
-    #dfp_odds.plot(x="Target region position", y="Coverage", kind='scatter', color='b', s=5, ax=dfp1_plot, marker="o")
-    #data_for_plot.plot(x="Target region position", y="Coverage", kind='scatter', color='y', s=5, ax=dfp1_plot, marker="o")
+    #print(dfp_evens)
    
     if_exists = []
     colors = ["r", "g", "b", "k", "y", "m"]
@@ -132,7 +121,7 @@ def create_scatter_plot(gene, csv_input):
         if val not in if_exists:
             if not checker:
                 initial_plot = data_for_plot[data_for_plot["Name"] == str(val)]
-                initial_plot = initial_plot.plot(x="Target region position", y="Coverage", label=val, kind='scatter', color='orange', s=5, marker="o", yticks=range(0, 10000, 100))
+                initial_plot = initial_plot.plot(x="Target region position", y="Coverage", label=val, kind='scatter', color='orange', s=5, marker="o", figsize=(40, 15))
                 checker = True
             else:
                 my_dataframe = data_for_plot[data_for_plot["Name"] == str(val)]
@@ -143,23 +132,6 @@ def create_scatter_plot(gene, csv_input):
                 color_selector = 0
         if_exists.append(val)
         
-    #iold_exon = False
-    #exon_plots = {}
-    #for idx, row in data_for_plot.iterrows():
-    #    exon_name = row["Name"]
-    #    if exon_name != old_exon:
-    #        exon_line = data_for_plot.loc[data_for_plot["Name"].str.contains(str(exon_name))]
-    #        #print(exon_plots[exon_name])
-    #        if not exon_name in exon_plots:
-    #            import pdb; pdb.set_trace()
-    #            exon_plots = {str(exon_name):pd.DataFrame()}
-    #        exon_plots[exon_name].append(exon_line)
-    #        #label_plots.plot(x="Target region position", y="Coverage", label=exon_name, kind='scatter', color='b', s=5, ax=dfp1_plot, marker="o")
-    #    old_exon = exon_name
-    
-    #for exons in exon_plots:
-    #    exons.plot(x="Target region position", y="Coverage", label=f"{exons}", kind='scatter', color='b', s=5, ax=dfp1_plot, marker="o")
-    
     maximums = {}
     for i in data_for_plot.index:
         name_val = data_for_plot.get_value(i, "Name")
@@ -167,30 +139,35 @@ def create_scatter_plot(gene, csv_input):
         maximums[name_val] = num_val
     max_list = list(maximums.values())
     max_list.insert(0, 0)
-    print(max_list)
-    initial_plot.set_xticks(np.asarray(max_list))
-
-    #ax = data_for_plot.plot.scatter(x='Target region position', y='Coverage', alpha=0.5)
-    #for i, txt in enumerate(data_for_plot.Name):
-    #        ax.annotate(txt, (data_for_plot.x.iat[i],data_for_plot.y.iat[i]))
-
-    #ax = data_for_plot.set_index('')
-    #label_point_orig(dfp1_plot.x, dfp1_plot.y, data_for_plot.Name, plt)
-
-
+    #print(max_list)
+    max_y_for_plot = max(data_for_plot["Coverage"])
+    major_ticks = np.arange(0, int(max_y_for_plot) + 100, 500)
+    minor_ticks = np.arange(0, int(max_y_for_plot) + 100, 100)
+    try:
+        initial_plot.set_yticks(major_ticks)
+        initial_plot.set_yticks(minor_ticks, minor=True)
+        initial_plot.set_xticks(np.asarray(max_list))
+    except UnboundLocalError:
+        print(f"ERROR: Please make sure that the gene {gene} is in the CSV-file you have provided")
+        exit(1)
     datacursor(hover=True)
-    #data_for_plot.plot("Reference position", "Coverage", kind='scatter', color='black')
-    #scatter_matrix(data_for_plot)
-    #data_for_plot[["Reference position", "Coverage"]].hist.plot()
     plot_title = data_for_plot.iat[1,2].split("_", 1)[0]
     plt.suptitle(plot_title, fontsize=30)
-    lgnd = plt.legend(fontsize=12)
+    #lgnd = plt.legend(fontsize=12, bbox_to_anchor=(0.5, 1.2), ncol=10, loc='upper center')
+    lgnd = plt.legend(fontsize=12, bbox_to_anchor=(0.5, -0.05),  loc='upper center', ncol=5, fancybox=True, shadow=True)
     for handles in lgnd.legendHandles:
         handles._sizes = [150]
-    #plt.plot()
-    
-    plt.grid()
-    plt.show()
+    plt.grid(which='major', alpha=0.7)
+    plt.grid(which='minor', alpha=0.2)
+    if not output:
+        plt.show(bbox_extra_artists=(lgnd,), bbox_inches='tight')
+    else:
+        try:
+            plt.savefig(f'{output}/{gene}.png', figsize=(2000, 2000), bbox_artists=(lgnd,), bbox_inches='tight')
+        except:
+            cwd = getcwd()
+            plt.savefig(f'{cwd}/{gene}.png')
+    plt.close()
 
 def create_scatter_plot_labels():
     pass
@@ -198,11 +175,40 @@ def create_scatter_plot_labels():
 if __name__ == "__main__":
     csv_input = argv[1]
     mappings = 1
-    mappings = int(argv[3])
+    #mappings = int(argv[3])
 
+    parser = argparse.ArgumentParser(prog='create_coverage_grapyh.py', formatter_class=argparse.RawDescriptionHelpFormatter,
+            description="""This script will read a csv created from the 'Coverage table' output of the CLC tool 'QC for target sequencing'.
+            
+            
+            
+            """)
+    parser.add_argument("-c", "--csv", nargs="?", type=str, help="Path to the CSV files you want to plot. Required.")
+    parser.add_argument("-g", "--gene", nargs="?", type=str, help="Specify the gene for which you want to generate a plot. put 'all' to run all genes. Default: Random.")
+    parser.add_argument("-o", "--output", nargs="?", type=str, help="Output folder where the plot images will be saved. If it doesnt exist, we will attempt to create it. Default: cwd")
+    parser.add_argument("-m", "--mappings", nargs="?", type=int, help="How many mappings you have merged in CLC before running QC for target sequencing. Default: 1")
+
+    args = parser.parse_args()
+
+    mappings = args.mappings
+    csv_input = args.csv
+    output = args.output
+    if output:
+        plt.ioff()
     genes_and_transcripts_df, uniq_genes_list = get_gene_names(csv_input)
     my_gene = uniq_genes_list[0]
-    my_gene = argv[2]
-    create_scatter_plot(my_gene, csv_input)
+    #my_gene = argv[2]
+    my_gene = args.gene
+    if my_gene.lower() == "all":
+        response = input(f"Are you sure you want to create plots for all genes in the folder '{output}'? It will take a while. (type 'yes' to confirm): ")
+        if response.lower() == "yes":
+            for every_gene in uniq_genes_list:
+                print(f'Creating plot for {every_gene} in directory: {output}')
+                create_scatter_plot(every_gene, csv_input, output)
+        else:
+            print("Thank you and goodbye!")
+            exit()
+    else:
+        create_scatter_plot(my_gene, csv_input, output)
 
     #print(genes_and_transcripts_df)
