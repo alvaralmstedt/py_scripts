@@ -6,6 +6,7 @@ import datetime
 import vcf
 import subprocess
 import logging
+import shutil
 
 class BadBamFileError(Exception):
     pass
@@ -128,6 +129,14 @@ def determine_sex(vcf_normal):
     return "/apps/bio/software/canvas/female_hg19.vcf"
 
 
+def igv_func(user, filelist):
+    igv_data_folder = f"/seqstore/webfolders/igv/data/{user}"
+    igv_xml_folder = f"/seqstore/webfolders/igv/users"
+    for segfile in filelist:
+        shutil.copy(segfile, igv_data_folder)
+        igv_modification(user, igv_xml_folder + f"{user}_igv.xml", segfile, "8008")
+        igv_modification(user, igv_xml_folder + f"{user}_igv_su.xml", segfile, "80")
+
 
 if __name__ == "__main__":
 
@@ -149,11 +158,14 @@ if __name__ == "__main__":
     runtype = runtype.args
     logging.info(f"The input arguments were set to: runtype={runtype} bam={bam_file}, normal vcf={normal_vcf}, IGV user={igv_user}, output path={output_path}")
 
-    ports = [8008, 80]
+    #ports = [8008, 80]
 
     precheck_inputs(bam_file, normal_vcf, igv_user, output_path, runtype)
     main_canvas(bam_file, normal_vcf, output_path, runtype)
-    segs = create_seg(output_path)
-    for segfile in segs:
-        for port in ports:
-            igv_modification()
+    
+    igv_func(igv_user, create_seg(output_path))
+    
+    # segs = create_seg(output_path)
+    #for segfile in segs:
+    #    for port in ports:
+    #        igv_modification()
