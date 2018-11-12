@@ -23,7 +23,10 @@ def precheck_inputs(bam, vcf_file, igvuser, outpath, runtype):
     vcf_reader = vcf.Reader(open(vcf_file, 'r'))
     for record in vcf_reader:
         if record.FILTER == None:
-            raise PeriodsInVcfError(f"This vcf: {vcf_file} uses periods for pass values instead of PASS. We don't want that.")
+            logging.info(f"This vcf: {vcf_file} uses periods for pass values instead of PASS. We dont want that. trying to fix ...")
+            vcf_file = fix_vcf(vcf_file, outpath)
+            break
+            #raise PeriodsInVcfError(f"This vcf: {vcf_file} uses periods for pass values instead of PASS. We don't want that.")
     logging.info(f"vcf-file: {vcf_file} looks ok")
     igvusers = os.listdir("/seqstore/webfolders/igv/users")
     valid_user = False
@@ -35,6 +38,29 @@ def precheck_inputs(bam, vcf_file, igvuser, outpath, runtype):
     logging.info(f"The igv user: {igvuser} seems ok")
     if not os.path.isdir(outpath):
         logging.info(f"The output path you have supplied: {outpath} does not yet exist. It will be created by canvas during the run.")
+    return vcf_file
+
+# Fixes the vcf file if it is required
+def fix_vcf(vcf_path, outpath):
+    my_env = os.environ.copy()
+    #bcftools = "/apps/bio/software/bcftools/1.9/bin/bcftools"
+    vcftools = "/apps/bio/apps/vcftools/0.1.12a/bin/vcftools"
+    destination = outpath + "/fixed_vcf"
+    if not os.path.isdir(destination):
+        os.makedirs(destination)
+    working_vcf_1 = os.path.basename(vcf_path.rsplit(".", 1)[0])
+    vcftools_args = [vcftools, "--vcf", vcf_path, "--remove-indels", "--recode", "--out", destination + "/" + working_vcf_1]
+    final_vcf = destination + "/" + working_vcf_1 + ".recode.vcf"
+    #final_vcf = working_vcf_1.rsplit(".", 1)[0] + "_fixed.vcf"
+    #bcftools_args = f"{bcftools} filter -i 'FILTER=\"PASS\"' {destination + '/' +working_vcf_1 + '.recode.vcf'} >> {destination + '/' + final_vcf}"
+    #logging.info(f"Arguments for bcftools: {bcftools_args}")
+    subprocess.call(vcftools_args, shell=False, env=my_env)
+    sed_args = ["sed", "-i", "s/\t\.\t\.\t/\tPASS\t\.\t/g", final_vcf]
+    logging.info(f"running sed on {final_vcf} in order to replace periods with PASS")
+    subprocess.call(sed_args, shell=False, env=my_env)
+    #subprocess.call(bcftools_args, shell=True)
+    return final_vcf
+
 
 # Modifies the igv xml files to include the new segfiles 
 def igv_modification(user, user_xml_path, infile, port):
@@ -177,7 +203,7 @@ if __name__ == "__main__":
     
     logging.info(f"The input arguments were set to: runtype={runtype} bam={bam_file}, normal vcf={normal_vcf}, IGV user={igv_user}, output path={output_path}")
 
-    precheck_inputs(bam_file, normal_vcf, igv_user, output_path, runtype)
+    normal_vcf = precheck_inputs(bam_file, normal_vcf, igv_user, output_path, runtype)
     main_canvas(bam_file, normal_vcf, output_path, runtype)
     
     igv_func(igv_user, create_seg(output_path, timestring))
