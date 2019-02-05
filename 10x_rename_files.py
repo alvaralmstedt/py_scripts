@@ -5,11 +5,21 @@
 # Check output to see that the files have been renamed correctly.
 
 import os
-from sys import argv
+#from sys import argv
 import re
 import glob
+import argparse
 
-path = argv[1]
+#path = argv[1]
+
+parser = argparse.ArgumentParser(prog="10x_rename_files.py", description="How to run: 10x_rename_files.py -p <folder containing fastqs> -n <custom filename>")
+parser.add_argument("-p", "--path", nargs="?", type=str, action='store', help="Path to the folder which contains the fastq files to be renamed, required")
+parser.add_argument("-n", "--name", nargs="?", type=str, action='store', help="Custom file name, optional. If not set, folder name will be used")
+
+args = parser.parse_args()
+
+path = args.path
+customname = args.name
 
 file_list = []
 name_list = []
@@ -18,7 +28,10 @@ iterator = 0
 for filename in sorted(glob.glob(os.path.join(path, "*.fastq.gz"))):
 
     directory = os.path.dirname(filename)
-    samplename = os.path.basename(directory)
+    if customname:
+        samplename = customname
+    else:
+        samplename = os.path.basename(directory)
 
     # Split up the names of input files with underscores, full stops and hypens as delimiters
     sn = re.split("_|\.|-", os.path.basename(filename))
@@ -68,3 +81,5 @@ for filename in sorted(glob.glob(os.path.join(path, "*.fastq.gz"))):
     iterator += 1
 
 print(samplename + " contents successfully renamed!")
+
+
