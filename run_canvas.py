@@ -30,12 +30,15 @@ def precheck_inputs(bam, vcf_file, igvuser, outpath, runtype):
     logging.info(f"vcf-file: {vcf_file} looks ok")
     igvusers = os.listdir("/seqstore/webfolders/igv/users")
     valid_user = False
-    for userfiles in igvusers:
-        if igvuser in userfiles:
-            valid_user = True
-    if valid_user == False:
-        raise IgvUserDoesNotExistError(f"The user '{igvuser}' does not seem to have an xml present on seqstore")
-    logging.info(f"The igv user: {igvuser} seems ok")
+    if not igvuser == None:
+        for userfiles in igvusers:
+            if igvuser in userfiles:
+                valid_user = True
+        if valid_user == False:           
+            raise IgvUserDoesNotExistError(f"The user '{igvuser}' does not seem to have an xml present on seqstore")
+        logging.info(f"The igv user: {igvuser} seems ok")
+    else:
+        logging.info("No IGV user was given. Nothing will be exported.")
     if not os.path.isdir(outpath):
         logging.info(f"The output path you have supplied: {outpath} does not yet exist. It will be created by canvas during the run.")
     return vcf_file
@@ -110,14 +113,14 @@ def main_canvas(bam, vcf, outpath, runtype):
 def create_seg(rundir, timestring):
    with open(f"{rundir}/CNV.CoverageAndVariantFrequency.txt", "r") as INFILE:
     with open(f"{rundir}/{timestring}_CNV_observed.seg", "w+") as OUTFILE:
-        OUTFILE.write("#track graphType=points maxHeightPixels=300:300:300 color=0,220,0 altColor=220,0,0\n")
+        OUTFILE.write("#track graphType=points maxHeightPixels=300:300:300 color=0,0,0 altColor=0,0,0\n")
         OUTFILE.write("Sample\tChromosome\tStart\tEnd\tCNV_Observed\n")
         with open(f"{rundir}/{timestring}_CNV_called.seg", "w+") as OUTFILE2:
-            OUTFILE2.write("#track graphType=points maxHeightPixels=300:300:300 color=0,220,0 altColor=220,0,0\n")
+            OUTFILE2.write("#track graphType=points maxHeightPixels=300:300:300 color=0,0,220 altColor=220,0,0\n")
             OUTFILE2.write("Sample\tChromosome\tStart\tEnd\tCNV_Called\n")
             for line in INFILE:
                 array_2 = line.split("\t")
-                print("array_2: ", array_2)
+                #print("array_2: ", array_2)
                 length = len(array_2)
                 cnv = 0
                 ncov = 0
@@ -125,14 +128,14 @@ def create_seg(rundir, timestring):
                 try:
                     cnv = float(array_2[3])
                     ncov = float(array_2[6])
-                    print("cnv: ", cnv)
-                    print("ncov: ", ncov)
+                    #print("cnv: ", cnv)
+                    #print("ncov: ", ncov)
                 except (IndexError, ValueError) as e:
-                    print("Exception: ", e)
+                    #print("Exception: ", e)
                     continue
 
                 if ncov > 0 and cnv > 0:
-                    print("PASSED")
+                    #print("PASSED")
                     cnvlog = math.log(cnv, 2)
                     covlog = math.log(ncov, 2)
                     if not array_2[0] == "X" or not array_2[0] == "Y":
@@ -168,6 +171,12 @@ def igv_func(user, filelist):
         igv_modification(user, igv_xml_folder + f"/{user}_igv.xml", segfile, "8008")
         igv_modification(user, igv_xml_folder + f"/{user}_igv_su.xml", segfile, "80")
 
+# UNDER CONSTRUCTION probably not needed
+#def determine_username(bam):
+#    user_list = {"susanne.fransson": "WNB", "carola.oldfors": "GSU", "alvar.almstedt":}
+#    for usernames in user_list.keys():
+#        if "WBN" in user_list[usernames]:
+#            return usernames
 
 if __name__ == "__main__":
 
@@ -191,6 +200,10 @@ if __name__ == "__main__":
     igv_user = args.user
     output_path = args.output
     runtype = args.runtype
+    
+# UNDER CONSTRUCTION probably not needed
+#    if igv_user.upper() == "AUTO" or igv_user == "" or not igv_user:
+#        igv_user = determine_username(bam_file)
 
     #ports = [8008, 80]
 
@@ -206,7 +219,8 @@ if __name__ == "__main__":
     normal_vcf = precheck_inputs(bam_file, normal_vcf, igv_user, output_path, runtype)
     main_canvas(bam_file, normal_vcf, output_path, runtype)
     
-    igv_func(igv_user, create_seg(output_path, timestring))
+    if len(igv_user) > 1:
+        igv_func(igv_user, create_seg(output_path, timestring))
     
     # segs = create_seg(output_path)
     #for segfile in segs:

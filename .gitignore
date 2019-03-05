@@ -55,3 +55,8 @@ docs/_build/
 
 # PyBuilder
 target/
+
+#My stuff
+*.png
+*.swp
+test_files
