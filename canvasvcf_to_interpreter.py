@@ -46,8 +46,8 @@ def mod_canvas_vcf(vcf):
     refposlist = []
     #fasta = "/medstore/External_References/hs37d5/hs37d5.fa"
     #chrom_seqio = SeqIO.to_dict(SeqIO.parse(fasta, "fasta"))  
-    vcf2 = vcf
-    for rec in vcf2:        
+    vcf_list = list(vcf)
+    for rec in vcf_list:        
         ref_pos = (str(rec.CHROM), str(rec.POS))
         refposlist.append(ref_pos)
 
@@ -57,9 +57,10 @@ def mod_canvas_vcf(vcf):
     print("final1")
     for d in results:
         refbases.update(d)
-    print(refbases)
+    #print(refbases)
     print("final2")
-    for record in vcf:
+    print(vcf_list)
+    for record in vcf_list:
         print("final3")
         chrom = record.CHROM
         pos = record.POS
@@ -91,7 +92,7 @@ def mod_canvas_vcf(vcf):
             print("<DUP>", record.POS, type(record.POS), record.REF, type(record.REF))
             record.ALT = "<DUP>"
             print("ref_pos:", ref_pos)
-            print(p.map_async(get_ref_base_from_pos, ref_pos))
+            #print(p.map_async(get_ref_base_from_pos, ref_pos))
         else:
             print("REF", record.POS)
             record.ALT = "<NORMAL>"
