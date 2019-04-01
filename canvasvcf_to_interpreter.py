@@ -40,8 +40,10 @@ def mod_canvas_vcf(vcf):
     refbases = {}
     for d in results:
         refbases.update(d)
-    #print(vcf_list)
+   
+    # This for loop will modify the actual variant lines in the vcf file
     for record in vcf_list:
+        #print(vcf.alts, "\n")
         chrom = record.CHROM
         pos = record.POS
         cn = record.samples[0].data[3]
@@ -100,9 +102,28 @@ def print_vcf(vcf, rectype):
 # Writes the modified vcf
 def write_vcf(fixed_vcf, output, template):
     fixed_vcf = iter(fixed_vcf)
+    
+    # This will modify the header values for ALT
+    template.alts["DUP"] = ["<DUP>", template.alts["DUP"][1]]
+    CN0copy = "<DEL>"
+    CN0desc = "Deletion has happened (copy)"
+    template.alts["CN0"] = [CN0copy, CN0desc]
+    CN2copy = "<NORMAL>"
+    CN2desc = "Copy number 2. Reference"
+    template.alts["CN2"] = [CN2copy, CN2desc]
+    CN3copy = "<DEL:HEMI>"
+    CN3desc = "Hemizygous deletion"
+    template.alts["CN3"] = [CN3copy, CN3desc]
+    CN4copy = "<LOH>"
+    CN4desc = "Loss of Heterozygosity"
+    template.alts["CN4"] = [CN4copy, CN4desc]
+    CN5copy = "<DEL:HOM>"
+    CN5desc = "Homozygous deletion"
+    template.alts["CN5"] = [CN5copy, CN5desc]
+    
     writer = vcf.Writer(open(output, "w"), template)
     for rec in fixed_vcf:
-        print(rec)
+        #print(rec)
         writer.write_record(rec)
 
 
