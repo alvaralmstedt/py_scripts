@@ -15,7 +15,7 @@ def read_vcf_new(infile):
     vcf_reader = vcf.Reader(open(infile, 'r'))
     return vcf_reader
 
-# This fucntion actually modifies the vcf to be compliate with Alissa Interpret. 
+# This function actually modifies the vcf to be compliant with Alissa Interpret. 
 # It has to do some awkward stuff but eh... it works
 def mod_canvas_vcf(vcf):
     refposlist = []
@@ -26,7 +26,6 @@ def mod_canvas_vcf(vcf):
         ref_pos = (str(rec.CHROM), str(rec.POS))
         refposlist.append(ref_pos)
 
-    #results = p.map(get_ref_base_from_pos, refposlist)
     results = []
     for tup in refposlist: 
         presults = chrom_dict[tup[0]][int(tup[1]) - 1 : int(tup[1])]
