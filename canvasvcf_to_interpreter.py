@@ -3,8 +3,6 @@
 import argparse
 import csv
 import vcf
-from multiprocessing import Pool
-from multiprocessing import cpu_count
 from Bio import SeqIO
 import logging
 import datetime
@@ -20,9 +18,6 @@ def read_vcf_new(infile):
 # This fucntion actually modifies the vcf to be compliate with Alissa Interpret. 
 # It has to do some awkward stuff but eh... it works
 def mod_canvas_vcf(vcf):
-    #cpus = int(cpu_count() - 2)
-    #logging.info(f"using {cpus} cpus")
-    #p = Pool(cpus)
     refposlist = []
     fasta = "/medstore/External_References/hs37d5/hs37d5.fa"
     chrom_dict = SeqIO.to_dict(SeqIO.parse(fasta, "fasta"))  
@@ -43,7 +38,6 @@ def mod_canvas_vcf(vcf):
    
     # This for loop will modify the actual variant lines in the vcf file
     for record in vcf_list:
-        #print(vcf.alts, "\n")
         chrom = record.CHROM
         pos = record.POS
         cn = record.samples[0].data[3]
@@ -55,38 +49,20 @@ def mod_canvas_vcf(vcf):
         except Exception:            
             pass
         if cn == 0 and type(chrom) == int:
-            #print(chrom, record.POS, record.REF, record.ALT, "<DEL:HOM>")
             record.ALT[0] = "<DEL:HOM>"            
-            #print(chrom, record.POS, record.REF, record.ALT, "<DEL:HOM>")
         elif cn == 0:
-            #print("<DEL:HEMI>", record.POS, record.REF, type(chrom))
             record.ALT[0] = "<DEL:HEMI>"
         elif cn == 1:
             record.ALT[0] = "<DEL>"
-            #print(chrom, record.POS, record.REF, record.ALT)
         elif cn == 2 and mcc == 2:
-            #print(chrom, record.POS)
             record.ALT[0] = "<LOH>"
         elif cn >= 3:
-            #print("<DUP>", record.POS, type(record.POS), record.REF, type(record.REF))
             record.ALT[0] = "<DUP>"
         else:
-            #print("REF", record.POS)
             # It seems like Alissa doesnt like <NORMAL> even though thats the suggestion from their docs ..
             record.ALT[0] = "<NORMAL>"
         logging.info(f"Variant at chromosome {chrom} pos {record.POS} has reference base '{record.REF}' and is set to type {record.ALT}")
     return vcf_list
-
-
-# Not used. Was pretty cool though lol
-def get_ref_base_from_pos(chrom_pos_tup):
-    fasta = "/medstore/External_References/hs37d5/hs37d5.fa"
-    chrom = chrom_pos_tup[0]
-    refpos = chrom_pos_tup[1]
-    chrom_dict = SeqIO.index(fasta, "fasta")
-    refbaseseqio = chrom_dict[chrom][int(refpos) - 1 :int(refpos)]
-    logging.info(f"Variant reference position on chr {chrom} at position {refpos} was determined to be {str(refbaseseqio.seq)}")
-    return {f"{chrom}:{refpos}": str(refbaseseqio.seq)}
 
 
 # Also not used. Was used for testing
@@ -100,7 +76,7 @@ def print_vcf(vcf, rectype):
 
 
 # Writes the modified vcf
-def write_vcf(fixed_vcf, output, template):
+def write_vcf(fixed_vcf, output, template, filters = False, normals = False):
     fixed_vcf = iter(fixed_vcf)
     
     # This will modify the header values for ALT
@@ -123,7 +99,10 @@ def write_vcf(fixed_vcf, output, template):
     
     writer = vcf.Writer(open(output, "w"), template)
     for rec in fixed_vcf:
-        #print(rec)
+        if "FailedFT" in rec.FILTER and not filters:
+            continue
+        elif "<NORMAL>" in rec.ALT and not normals:
+            continue
         writer.write_record(rec)
 
 
@@ -138,7 +117,11 @@ def determine_input(indata):
                 elif "Manta" in line:
                     return "Manta"
                 else:
-                    return None
+                    try:
+                        return str(line)
+                    except:
+                        return None
+
 
 
 def main():
@@ -147,6 +130,8 @@ def main():
     parser.add_argument("vcf_input", nargs="?", type=str, help=':Full path to your vcf input file')
     parser.add_argument("vcf_output", nargs="?", type=str, help=':Specify full output path and filename of the vcf file you want to create')
     parser.add_argument("-r", "--record", nargs="?", action='store', type=str, help=':Specify which record ya wanna see. Only used for testing')
+    parser.add_argument("-n", '--save_normals', action='store_true', help="Set this flag if you do not want to remove the normal (reference) variants from the outptu")
+    parser.add_argument('-f', '--save_filtered', action='store_true', help="Set this flag if you do not want to remove the filter-fail variants")
 
     args = parser.parse_args()
     
@@ -154,16 +139,22 @@ def main():
     inp = args.vcf_input
     outp = args.vcf_output
     rec = args.record
+    save_filter = args.save_filtered
+    save_normal = args.save_normals
 
     source_program = determine_input(inp)
     print(source_program)
 
     if source_program == "Canvas":
         fixed_pyvcf = mod_canvas_vcf(read_vcf_new(inp))
-        write_vcf(fixed_pyvcf, outp, read_vcf_new(inp))
+        write_vcf(fixed_pyvcf, outp, read_vcf_new(inp), save_filter, save_normal)
     elif source_program == "Manta":
         print("Manta not yet implemented ... sorry")
-
+    else:
+        try:
+            print(f"The source of the vcf file could not be determined from:\n {line}")
+        except:
+            print("Source line not found. Source could not be determined.")
 
 if __name__ == "__main__":
     main()
