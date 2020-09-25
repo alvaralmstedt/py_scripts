@@ -50,15 +50,16 @@ def create_new_filenames(good_inlist):
 def merge(fq1, fq2):
     with open(fq1, 'wb') as ofq1:
         with open(fq3, 'r') as ofq2:
-            shutil.copyfileobj(ofq2, ofq1)
+            print(f"shutil.copyfileobj({ofq2}, {ofq1})")
 
 
 def merge_and_rename(chdict, outfolder=os.getcwd()):
-    print(chdict)
+    #print(chdict)
     #merge
     for i in chdict:
-
-
+        s_infiles = sorted(chdict[i])
+        print(s_infiles, '\n')
+        merge(s_infiles[0], s_infiles[1])
     #rename
 
 def main():
