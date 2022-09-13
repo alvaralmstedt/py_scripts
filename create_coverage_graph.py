@@ -40,6 +40,16 @@ def get_gene_names(all_data):
     unique_gene_names = list(set(gene_names))
     return genes_and_transcripts, unique_gene_names
 
+    parser = argparse.ArgumentParser(prog='create_coverage_grapyh.py', formatter_class=argparse.RawDescriptionHelpFormatter,
+            description="""This script will read a csv created from the 'Coverage table' output of the CLC tool 'QC for target sequencing'.
+            
+            
+            
+            """)
+    parser.add_argument("-c", "--csv", nargs="?", type=str, help="Path to the CSV files you want to plot. Required.")
+    parser.add_argument("-g", "--gene", nargs="?", type=str, help="Specify the gene for which you want to generate a plot. put 'all' to run all genes. Default: Random.")
+    parser.add_argument("-o", "--output", nargs="?", type=str, help="Output folder where the plot images will be saved. If it doesnt exist, we will attempt to create it. Default: cwd")
+    parser.add_argument("-m", "--mappings", nargs="?", type=int, help="How many mappings you have merged in CLC before running QC for target sequencing. Default: 1")
 
 # This function takes data and gene and returns which transcripts are in that gene
 def get_exons_in_gene(all_data, gene):

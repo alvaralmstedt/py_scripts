@@ -83,3 +83,5 @@ for filename in sorted(glob.glob(os.path.join(path, "*.fastq.gz"))):
 print(samplename + " contents successfully renamed!")
 
 
+
+

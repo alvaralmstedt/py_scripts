@@ -60,3 +60,8 @@ target/
 *.png
 *.swp
 test_files
+
+#My stuff
+*.png
+*.swp
+test_files
