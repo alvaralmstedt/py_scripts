@@ -101,7 +101,7 @@ def get_af_from_vcf(vcf, snps):
                 if str(row['chr']) == str(row2['chr']):
                     #log_progress(f"Wohoo chromosome match {row['chr']} == {row2['chr']}")
                     if int(row['pos']) == int(row2['pos']):
-                        log_progress(f"Yipee position match {row['pos']} == {row2['pos']}")
+                        #log_progress(f"Yipee position match {row['pos']} == {row2['pos']}")
                         # get the AF from the info column
                         info = row2['info']
                         # split the info column on ';'
@@ -113,18 +113,28 @@ def get_af_from_vcf(vcf, snps):
                                 # if its POPAF, skip
                                 if 'POPAF' in item:
                                     continue
-                                log_progress(f"AF found {item}")
+                                #log_progress(f"AF found {item}")
                                 af = item.split('=')[1]
-                                log_progress(f"AF = {af}")
+                                #log_progress(f"AF = {af}")
                                 # get vcf file basename
                                 vcf_basename = os.path.basename(vcf_file)
-                                log_progress(f"appending {vcf_basename}, {row['chr']}, {row['pos']}, {af} to snps_out dataframe")
+                                #log_progress(f"appending {vcf_basename}, {row['chr']}, {row['pos']}, {af} to snps_out dataframe")
                                 snps_out = snps_out.append({'sample': vcf_basename, 'chr': row['chr'], 'pos': row['pos'], 'AF': af}, ignore_index=True)
                     else:
-                        continue
+                        # append an AF of 0 if the position doesn't match
+                        #log_progress(f"Position doesn't match {row['pos']} != {row2['pos']}")
+                        # get vcf file basename
+                        vcf_basename = os.path.basename(vcf_file)
+                        #log_progress(f"appending {vcf_basename}, {row['chr']}, {row['pos']}, 0 to snps_out dataframe")
+                        snps_out = snps_out.append({'sample': vcf_basename, 'chr': row['chr'], 'pos': row['pos'], 'AF': 0}, ignore_index=True)
+                        #continue
                 else:
                     continue
-    log_progress(f'The start of the snps out variable {snps_out[5:]}')
+    # remove duplicate lines in the dataframe, keeping only the one with a non zero AF value if there is one using the
+    # following example as inspiration:
+    # df.sort_values('var3', ascending=False).drop_duplicates(['var1', 'var2']).sort_index() but make sure the datatypes are correct first
+    snps_out['AF'] = snps_out['AF'].astype(float)
+    snps_out = snps_out.sort_values('AF', ascending=False).drop_duplicates(['sample', 'chr', 'pos']).sort_index()
     return snps_out
 
 
